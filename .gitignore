@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+bandit-report.*
+hospital.db
+test_hospital.db
+.env
+.idea/
+.vscode/

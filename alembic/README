@@ -1,0 +1,3 @@
+Alembic migration directory.
+
+Migration versions are stored in alembic/versions/.

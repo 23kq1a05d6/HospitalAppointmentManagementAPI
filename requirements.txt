@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+alembic
+pydantic
+pytest
+pytest-cov
+httpx
+bandit
+ruff
