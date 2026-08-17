@@ -37,6 +37,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -48,16 +51,33 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      - name: Check app import
+      - name: Add project to Python path
         run: |
+          echo "PYTHONPATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
+
+      - name: Verify project structure
+        run: |
+          echo "Current directory:"
           pwd
+          echo "Project files:"
           ls -la
+          echo "App files:"
+          ls -la app
+          echo "Test files:"
+          ls -la tests
+
+      - name: Verify app import
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -c "import os; print('WORKSPACE:', os.getcwd())"
           python -c "import app; print('APP FOUND:', app.__file__)"
+          python -c "from app.database import Base, get_db; print('DATABASE IMPORT OK')"
 
       - name: Run tests
-        env:
-          PYTHONPATH: .
-        run: python -m pytest --cov=app --cov-report=term-missing --cov-fail-under=85
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -m pytest tests --cov=app --cov-report=term-missing --cov-fail-under=85
 
   security:
     runs-on: ubuntu-latest
