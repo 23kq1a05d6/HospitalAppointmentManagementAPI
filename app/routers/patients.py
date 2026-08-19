@@ -8,15 +8,26 @@ from app.schemas.patient import PatientCreate, PatientResponse
 router = APIRouter(prefix="/patients", tags=["Patients"])
 
 
-@router.get("/", response_model=list[PatientResponse])
+@router.get("", response_model=list[PatientResponse])
+@router.get(
+    "/",
+    response_model=list[PatientResponse],
+    include_in_schema=False,
+)
 def get_patients(db: Session = Depends(get_db)):
     return db.query(Patient).all()
 
 
 @router.post(
+    "",
+    response_model=PatientResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+@router.post(
     "/",
     response_model=PatientResponse,
     status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
 )
 def create_patient(
     patient: PatientCreate,

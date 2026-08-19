@@ -8,15 +8,26 @@ from app.schemas.doctor import DoctorCreate, DoctorResponse
 router = APIRouter(prefix="/doctors", tags=["Doctors"])
 
 
-@router.get("/", response_model=list[DoctorResponse])
+@router.get("", response_model=list[DoctorResponse])
+@router.get(
+    "/",
+    response_model=list[DoctorResponse],
+    include_in_schema=False,
+)
 def get_doctors(db: Session = Depends(get_db)):
     return db.query(Doctor).all()
 
 
 @router.post(
+    "",
+    response_model=DoctorResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+@router.post(
     "/",
     response_model=DoctorResponse,
     status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
 )
 def create_doctor(
     doctor: DoctorCreate,

@@ -11,15 +11,26 @@ from app.services.appointment_service import create_appointment
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
 
-@router.get("/", response_model=list[AppointmentResponse])
+@router.get("", response_model=list[AppointmentResponse])
+@router.get(
+    "/",
+    response_model=list[AppointmentResponse],
+    include_in_schema=False,
+)
 def get_appointments(db: Session = Depends(get_db)):
     return db.query(Appointment).all()
 
 
 @router.post(
+    "",
+    response_model=AppointmentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+@router.post(
     "/",
     response_model=AppointmentResponse,
     status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
 )
 def create_new_appointment(
     appointment: AppointmentCreate,
