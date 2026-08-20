@@ -5,7 +5,6 @@ from app.database import get_db
 from app.models.patient import Patient
 from app.schemas.patient import PatientCreate, PatientResponse
 
-
 router = APIRouter(
     prefix="/patients",
     tags=["Patients"]
@@ -22,7 +21,6 @@ def create_patient(
     patient: PatientCreate,
     db: Session = Depends(get_db)
 ):
-    # Check whether the email already exists
     existing_patient = (
         db.query(Patient)
         .filter(Patient.email == patient.email)
@@ -32,10 +30,9 @@ def create_patient(
     if existing_patient:
         raise HTTPException(
             status_code=409,
-            detail="Email already exists"
+            detail="Patient with this email already exists"
         )
 
-    # Create a new patient
     new_patient = Patient(
         name=patient.name,
         email=patient.email,
