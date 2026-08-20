@@ -1,38 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.patient import Patient
 from app.schemas.patient import PatientCreate, PatientResponse
 
-router = APIRouter(prefix="/patients", tags=["Patients"])
 
-
-@router.get("", response_model=list[PatientResponse])
-@router.get(
-    "/",
-    response_model=list[PatientResponse],
-    include_in_schema=False,
+router = APIRouter(
+    prefix="/patients",
+    tags=["Patients"]
 )
+
+
+@router.get("/", response_model=list[PatientResponse])
 def get_patients(db: Session = Depends(get_db)):
     return db.query(Patient).all()
 
 
-@router.post(
-    "",
-    response_model=PatientResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-@router.post(
-    "/",
-    response_model=PatientResponse,
-    status_code=status.HTTP_201_CREATED,
-    include_in_schema=False,
-)
+@router.post("/", response_model=PatientResponse, status_code=201)
 def create_patient(
     patient: PatientCreate,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
+    # Check whether the email already exists
     existing_patient = (
         db.query(Patient)
         .filter(Patient.email == patient.email)
@@ -41,30 +31,39 @@ def create_patient(
 
     if existing_patient:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Patient with this email already exists",
+            status_code=409,
+            detail="Email already exists"
         )
 
-    db_patient = Patient(**patient.model_dump())
+    # Create a new patient
+    new_patient = Patient(
+        name=patient.name,
+        email=patient.email,
+        phone=patient.phone
+    )
 
-    db.add(db_patient)
+    db.add(new_patient)
     db.commit()
-    db.refresh(db_patient)
+    db.refresh(new_patient)
 
-    return db_patient
+    return new_patient
 
 
 @router.get("/{patient_id}", response_model=PatientResponse)
 def get_patient(
     patient_id: int,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db)
 ):
-    patient = db.get(Patient, patient_id)
+    patient = (
+        db.query(Patient)
+        .filter(Patient.id == patient_id)
+        .first()
+    )
 
     if patient is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Patient not found",
+            status_code=404,
+            detail="Patient not found"
         )
 
     return patient

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -8,51 +8,30 @@ from app.schemas.doctor import DoctorCreate, DoctorResponse
 router = APIRouter(prefix="/doctors", tags=["Doctors"])
 
 
-@router.get("", response_model=list[DoctorResponse])
-@router.get(
-    "/",
-    response_model=list[DoctorResponse],
-    include_in_schema=False,
-)
+@router.get("/", response_model=list[DoctorResponse])
 def get_doctors(db: Session = Depends(get_db)):
     return db.query(Doctor).all()
 
 
-@router.post(
-    "",
-    response_model=DoctorResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-@router.post(
-    "/",
-    response_model=DoctorResponse,
-    status_code=status.HTTP_201_CREATED,
-    include_in_schema=False,
-)
-def create_doctor(
-    doctor: DoctorCreate,
-    db: Session = Depends(get_db),
-):
-    db_doctor = Doctor(**doctor.model_dump())
+@router.post("/", response_model=DoctorResponse, status_code=201)
+def create_doctor(doctor: DoctorCreate, db: Session = Depends(get_db)):
+    new_doctor = Doctor(
+        name=doctor.name,
+        specialization=doctor.specialization
+    )
 
-    db.add(db_doctor)
+    db.add(new_doctor)
     db.commit()
-    db.refresh(db_doctor)
+    db.refresh(new_doctor)
 
-    return db_doctor
+    return new_doctor
 
 
 @router.get("/{doctor_id}", response_model=DoctorResponse)
-def get_doctor(
-    doctor_id: int,
-    db: Session = Depends(get_db),
-):
-    doctor = db.get(Doctor, doctor_id)
+def get_doctor(doctor_id: int, db: Session = Depends(get_db)):
+    doctor = db.query(Doctor).filter(Doctor.id == doctor_id).first()
 
     if doctor is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Doctor not found",
-        )
+        raise HTTPException(status_code=404, detail="Doctor not found")
 
     return doctor
